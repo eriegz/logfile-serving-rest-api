@@ -1,3 +1,5 @@
+require("./util/globalVariables.js")
+
 const fs = require("fs");
 const http = require("http");
 const https = require("https");
@@ -5,9 +7,9 @@ const express = require("express");
 const bodyParser = require("body-parser");
 
 const config = require("./config");
-const logger = require("./util/logger");
 
 const versionController = require("./routes/versionController");
+const logsController = require("./routes/logsController");
 
 // Configure Express.js with our desired settings:
 const app = express();
@@ -22,6 +24,7 @@ const sslConfig = {
 
 // Wire up our various endpoints:
 app.use("/api", versionController);
+app.use("/api", logsController);
 
 // Display a welcome message in the console once on startup:
 console.log(require("./banner.js").green);
