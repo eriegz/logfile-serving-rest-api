@@ -13,7 +13,7 @@ docker build -t logfile_serving_rest_api .
 Next, run it:
 
 ```
-docker run -p 127.0.0.1:2000:2000 -p 127.0.0.1:2443:2443 --name logfile_serving_rest_api -e NODE_ENV=local logfile_serving_rest_api
+docker run -p 127.0.0.1:2000:2000 -p 127.0.0.1:2443:2443 --name logfile_serving_rest_api -e NODE_ENV=docker logfile_serving_rest_api
 ```
 
 Use an application like Postman to test out the application:
