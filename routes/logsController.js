@@ -8,8 +8,22 @@ const { LOG_DIR } = require("../config");
 router.get("/logs", async (req, res) => {
   const { file, n, search } = req.query;
 
+  const parsedN = parseInt(n, 10);
+  if (n !== undefined && (!Number.isInteger(Number(n)) || isNaN(parsedN))) {
+    return res.status(400).send({ error: "'n' must be an integer" });
+  }
+  if (search !== undefined && search.length > 100) {
+    return res.status(400).send({ error: "'search' query parameter cannot exceed 100 characters" });
+  }
+  // The regex below prevents directory traversal via string inputs such as `../`, `~/`, `/`, etc.
+  if (file !== undefined && /(^\/|\.{2,}[\/\\]|~[\/\\]|%2e%2e%2f|%2f)/i.test(file)) {
+    return res
+      .status(500)
+      .send({ error: "Please enter a valid filename" });
+  }
+
   const numLines = n
-    ? parseInt(n, 10)
+    ? parsedN
     : 5;
 
   try {
@@ -37,12 +51,6 @@ router.get("/logs", async (req, res) => {
       // Filter out undefined results from non-file entries
       finalOutput = finalOutput.filter(Boolean);
     } else {
-      if (!/^[a-zA-Z0-9_.-]+(\.[a-zA-Z0-9]+)?$/.test(file)) {
-        return res
-          .status(500)
-          .send({ error: "File names can only include letters, numbers, dashes, underscores, and single periods" });
-      }
-
       const itemPath = path.join(LOG_DIR, file);
       try {
         await fs.access(itemPath);
@@ -123,7 +131,7 @@ async function readLinesFromEndOfFile(filePath, n, search) {
   } catch (err) {
     console.error('Error reading file:', err);
   } finally {
-    await fileDescriptor.close(); // Asynchronously close the file
+    await fileDescriptor.close();
   }
 
   return outputLines;
