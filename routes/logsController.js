@@ -8,12 +8,6 @@ const { LOG_DIR } = require("../config");
 router.get("/logs", async (req, res) => {
   const { file, n, search } = req.query;
 
-  if (!/^[a-zA-Z0-9_.-]+\.([a-zA-Z0-9]+)$/.test(file)) {
-    return res
-      .status(500)
-      .send({ error: "File names can only include letters, numbers, and single periods" });
-  }
-
   const numLines = n
     ? parseInt(n, 10)
     : 5;
@@ -35,6 +29,12 @@ router.get("/logs", async (req, res) => {
         });
       }
     } else {
+      if (!/^[a-zA-Z0-9_.-]+\.([a-zA-Z0-9]+)$/.test(file)) {
+        return res
+          .status(500)
+          .send({ error: "File names can only include letters, numbers, and single periods" });
+      }
+
       const filePath = path.join(LOG_DIR, file);
       if (!fs.existsSync(filePath)) {
         return res.status(404).send({ error: "Log file not found" });
