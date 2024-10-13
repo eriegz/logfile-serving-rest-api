@@ -9,8 +9,9 @@ router.get("/logs", async (req, res) => {
   const { file, n, search } = req.query;
 
   const parsedN = parseInt(n, 10);
-  if (n !== undefined && (!Number.isInteger(Number(n)) || isNaN(parsedN))) {
-    return res.status(400).send({ error: "'n' must be an integer" });
+  const nIsInvalid = n !== undefined && (!Number.isInteger(Number(n)) || isNaN(parsedN));
+  if (nIsInvalid || parsedN < 0 || parsedN > 200) {
+    return res.status(400).send({ error: "'n' must be an integer between 0 and 200" });
   }
   if (search !== undefined && search.length > 100) {
     return res.status(400).send({ error: "'search' query parameter cannot exceed 100 characters" });
@@ -85,29 +86,48 @@ async function readLinesFromEndOfFile(filePath, n, search) {
   // Increasing it beyond 20 KB results in only marginal performance improvements, if any.
   const CHUNK_SIZE_BYTES = 1024 * 20;
   let buffer = Buffer.alloc(CHUNK_SIZE_BYTES);
-  let position = fileSize - CHUNK_SIZE_BYTES;
+  // Note: `fileReadPosition` can be negative, but its value will get clamped to a minimum value of
+  // 0 before being used for any file reads, and its negative value can help us calculate the number
+  // of bytes to read, down below.
+  let fileReadPosition = fileSize - CHUNK_SIZE_BYTES;
   let chunk = '';
   let outputLines = [];
+  let numLinesProcessed = 0;
 
   try {
-    while (position >= -CHUNK_SIZE_BYTES && outputLines.length < n) {
-      const bytesToRead = position < 0
-        ? CHUNK_SIZE_BYTES + position
+    while (fileReadPosition >= -CHUNK_SIZE_BYTES && numLinesProcessed < n) {
+      const bytesToRead = fileReadPosition < 0
+        ? CHUNK_SIZE_BYTES + fileReadPosition
         : CHUNK_SIZE_BYTES;
-      const positionClamped = Math.max(position, 0);
-      const { bytesRead } = await fileDescriptor.read(buffer, 0, bytesToRead, positionClamped);
-
-      if (bytesRead === 0) {
+      const positionClamped = Math.max(fileReadPosition, 0);
+      const { bytesRead: numBytesRead } = await fileDescriptor.read(
+        buffer,
+        0,
+        bytesToRead,
+        positionClamped
+      );
+      if (numBytesRead === 0) {
         break;
       }
 
-      const data = buffer.toString('utf-8', 0, bytesRead);
-      chunk = data + chunk;
+      const newText = buffer.toString('utf-8', 0, numBytesRead);
+      // Prepend the new chunk in front of any existing `chunk`, so that we will pick up where we
+      // left off with any previous line fragments.
+      chunk = newText + chunk;
 
       const lines = chunk
         .split('\n')
         .filter(ea => ea.length > 0);
-      chunk = lines.shift(); // Keep the last incomplete line for the next chunk
+      // This section ensures that any fragments are moved into the next loop iteration, and if this
+      // current iteration is the last one then `chunk` will get processed later on, outside the
+      // loop. If `chunk` contains ONLY newline characters, then `line'` will return
+      // undefined, in which case we want to reset `chunk` so that these characters don't move on
+      // to subsequent iterations.
+      if (lines.length !== 0) {
+        chunk = lines.shift()
+      } else {
+        chunk = "";
+      }
 
       // Read the lines starting from the back and check for the search term in each one:
       for (let i = lines.length - 1; i >= 0; i--) {
@@ -115,17 +135,19 @@ async function readLinesFromEndOfFile(filePath, n, search) {
         if (search === undefined || line.toLowerCase().includes(search.toLowerCase())) {
           outputLines.unshift(line);
         }
-        if (outputLines.length >= n) {
+        numLinesProcessed++;
+        if (numLinesProcessed >= n) {
           break;
         }
       }
 
-      position -= CHUNK_SIZE_BYTES;
+      fileReadPosition -= CHUNK_SIZE_BYTES;
     }
 
-    // If the last chunk contained a partial line, process it
-    const match = search === undefined || chunk.toLowerCase().includes(search.toLowerCase());
-    if (chunk.length > 0 && outputLines.length < n && match) {
+    if (chunk.length > 0
+      && numLinesProcessed < n
+      && (search === undefined || chunk.toLowerCase().includes(search.toLowerCase()))
+    ) {
       outputLines.unshift(chunk.trim());
     }
   } catch (err) {
