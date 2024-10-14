@@ -73,10 +73,10 @@ function App() {
         </form>
 
         {/* Displaying logs in cards */}
-        <div className="log-cards">
+        <div className={`log-cards ${logs.length > 0 ? 'with-logs' : ''}`}>
           {logs.map((log, index) => (
             <div key={index} className="log-card">
-              <p>Filename: <strong>{log.filename}</strong></p>
+              <p className="filename-line">Filename: <strong>{log.filename}</strong></p>
               <p>Number of Lines: <strong>{log.numLines}</strong></p>
               {log.lines.map((line, idx) => (
                 <div key={idx} className="log-lines-card">
