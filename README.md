@@ -7,7 +7,7 @@ This repo contains a simple containerised backend REST API server that serves up
 The following command will spin up both the frontend and backend applications as individual Docker services:
 
 ```
-docker-compose --env-file .env up --build backend frontend
+docker-compose --env-file .docker-env up --build backend frontend
 ```
 
 Use an application like Postman to test out the backend REST API:

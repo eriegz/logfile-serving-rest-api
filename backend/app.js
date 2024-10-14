@@ -1,6 +1,7 @@
 require("./util/globalVariables.js")
 
 const fs = require("fs");
+const cors = require('cors');
 const http = require("http");
 const https = require("https");
 const express = require("express");
@@ -13,6 +14,9 @@ const logsController = require("./routes/logsController");
 
 // Configure Express.js with our desired settings:
 const app = express();
+
+app.use(cors());
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json())
 
