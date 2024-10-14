@@ -1,5 +1,5 @@
 {
-    "name": "logfile-serving-rest-api",
+    "name": "logfiles-web-app-backend",
     "version": "1.0.0",
     "description": "This repo contains a simple containerised backend REST API server that serves up the contents of its host's `/var/log` folder.",
     "main": "app.js",
