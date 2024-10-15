@@ -1,16 +1,16 @@
-# **Logfile-Serving REST API (Node.js)**
+# **Logfile-Serving Web App (React.js frontend & Node.js backend)**
 
-This repo contains a simple containerised backend REST API server that serves up the contents of its host's `/var/log` folder.
+This repo contains a simple containerised web application (frontend & backend) that serves up the contents of two machine's `/var/log` folders.
 
 ## How to run:
 
-The following command will spin up both the frontend and backend applications as individual Docker services:
+The following command will spin up the frontend and backend applications as individual Docker services:
 
 ```
 docker-compose --env-file .docker-env up --build frontend backend-proxy backend-1 backend-2
 ```
 
-As soon as you see `webpack compiled successfully` appear in your "frontend" Docker service's logs, that means you can now open the React frontend in your web browser:
+As soon as you see the `webpack compiled successfully` line appear in your "frontend" Docker service's logs, that means you can now open the React frontend in your web browser:
 
 http://localhost:2000/
 

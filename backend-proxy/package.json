@@ -1,5 +1,5 @@
 {
-    "name": "backend-proxy-server",
+    "name": "logfiles-web-app-backend-proxy-server",
     "version": "1.0.0",
     "main": "app.js",
     "scripts": {
