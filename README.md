@@ -10,10 +10,14 @@ The following command will spin up both the frontend and backend applications as
 docker-compose --env-file .docker-env up --build frontend backend-proxy backend-1 backend-2
 ```
 
-Use an application like Postman to test out the backend REST API:
+As soon as you see `webpack compiled successfully` appear in your "frontend" Docker service's logs, that means you can now open the React frontend in your web browser:
+
+http://localhost:2000/
+
+Use an application like Postman to test out the backend REST API. You can copy-paste the following command right into the address bar of a new Postman tab, and it will auto-import your request:
 
 ```
-curl --location 'localhost:2000/api/logs'
+curl --location 'localhost:4000/api/logs'
 ```
 
 # Assumptions:
