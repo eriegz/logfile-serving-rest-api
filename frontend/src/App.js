@@ -48,7 +48,6 @@ function App() {
       <header className="App-header">
         <h1>Logfile Search App</h1>
 
-        {/* Centered form with left-justified contents */}
         <form onSubmit={handleSubmit} className="form-container">
           <div className="form-group">
             <label>File:</label>
@@ -56,8 +55,7 @@ function App() {
               value={file}
               onChange={(e) => setFile(e.target.value)}
             >
-              <option value="">Select a file</option> {/* Default option */}
-              {/* Populate select options dynamically */}
+              <option value="">Select a file</option> {/* Selecting this will return all files */}
               {logFilesList.map((logFile, index) => (
                 <option key={index} value={logFile}>
                   {logFile}
@@ -86,7 +84,6 @@ function App() {
           <button type="submit">Search Logs</button>
         </form>
 
-        {/* Displaying logs in cards */}
         <div className={`log-cards ${logs.length > 0 ? 'with-logs' : ''}`}>
           {logs.map((log, index) => (
             <div key={index} className="log-card">
