@@ -1,6 +1,11 @@
 # **Logfile-Serving Web App (React.js frontend & Node.js backend)**
 
-This repo contains a simple containerised web application (frontend & backend) that serves up the contents of two machine's `/var/log` folders.
+This repo contains four containerised web applications that together serve up the contents of two target machine's `/var/log` folders. The four applications are laid out as follows:
+
+- **backend-1** (deployed with source code from "backend" folder), which acts as log file machine #1
+- **backend-2** (deployed with source code from "backend" folder), which acts as log file machine #2
+- **backend-proxy**, the "primary" server that aggregates log file lines from the above two servers
+- **frontend**, containing our UI to use the web app in the browser
 
 ## How to run:
 
