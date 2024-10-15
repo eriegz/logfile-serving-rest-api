@@ -1,23 +1,57 @@
 version: '3'
 services:
-  backend:
-    build:
-      context: ./backend
-    container_name: backend
-    ports:
-      - "2000:2000"
-      - "2443:2443"
-    environment:
-      - NODE_ENV=docker
-    restart: always
-
   frontend:
     build:
       context: ./frontend
     container_name: frontend
     ports:
-      - "3000:3000"
+      - "2000:2000"
     environment:
       - NODE_ENV=docker
+      - PORT=2000
+      - REACT_APP_PROXY_HOST=localhost:4000
     stdin_open: true
+    restart: always
+
+  backend-proxy:
+    build:
+      context: ./backend-proxy
+    container_name: backend-proxy
+    ports:
+      - "4000:4000"
+      - "4443:4443"
+    environment:
+      - NODE_ENV=docker
+      - HTTP_PORT=4000
+      - HTTPS_PORT=4443
+      - BACKEND_1_PORT=6000
+      - BACKEND_2_PORT=8000
+    restart: always
+
+  backend-1:
+    build:
+      context: ./backend
+      dockerfile: ../backend-1/Dockerfile
+    container_name: backend-1
+    ports:
+      - "6000:6000"
+      - "6443:6443"
+    environment:
+      - NODE_ENV=docker
+      - HTTP_PORT=6000
+      - HTTPS_PORT=6443
+    restart: always
+
+  backend-2:
+    build:
+      context: ./backend
+      dockerfile: ../backend-2/Dockerfile
+    container_name: backend-2
+    ports:
+      - "8000:8000"
+      - "8443:8443"
+    environment:
+      - NODE_ENV=docker
+      - HTTP_PORT=8000
+      - HTTPS_PORT=8443
     restart: always

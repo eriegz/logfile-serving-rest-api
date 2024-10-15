@@ -1,12 +1,28 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 
 function App() {
   const [file, setFile] = useState('');
   const [n, setN] = useState('');
   const [search, setSearch] = useState('');
-
+  const [logFilesList, setLogFilesList] = useState([]);
   const [logs, setLogs] = useState([]);
+
+  // Fetch list of possible log files to choose from:
+  useEffect(() => {
+    const fetchLogFiles = async () => {
+      try {
+        fetch(`http://${process.env.REACT_APP_PROXY_HOST}/api/logfiles-list`)
+          .then(response => response.json())
+          .then(data => setLogFilesList(data))
+          .catch(error => console.error('Error:', error));
+      } catch (error) {
+        console.error('Error fetching log files:', error);
+      }
+    };
+
+    fetchLogFiles();
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -19,7 +35,7 @@ function App() {
     const queryParamsStr = new URLSearchParams(queryParams).toString();
     const queryParamsIfExists = queryParamsStr ? `?${queryParamsStr}` : '';
 
-    const apiUrl = `http://localhost:2000/api/logs${queryParamsIfExists}`;
+    const apiUrl = `http://${process.env.REACT_APP_PROXY_HOST}/api/logs${queryParamsIfExists}`;
 
     fetch(apiUrl)
       .then(response => response.json())
@@ -41,14 +57,12 @@ function App() {
               onChange={(e) => setFile(e.target.value)}
             >
               <option value="">Select a file</option> {/* Default option */}
-              <option value="noextension">noextension</option>
-              <option value="test-log-file-2018-chunk-size.log">test-log-file-2018-chunk-size.log</option>
-              <option value="test-log-file-2019-empty-file.log">test-log-file-2019-empty-file.log</option>
-              <option value="test-log-file-2020-only-newlines.log">test-log-file-2020-only-newlines.log</option>
-              <option value="test-log-file-2021-long-and-short-lines.log">test-log-file-2021-long-and-short-lines.log</option>
-              <option value="test-log-file-2022-large-file.log">test-log-file-2022-large-file.log</option>
-              <option value="test-log-file-2023.log">test-log-file-2023.log</option>
-              <option value="test-log-file-2024-short-file.log">test-log-file-2024-short-file.log</option>
+              {/* Populate select options dynamically */}
+              {logFilesList.map((logFile, index) => (
+                <option key={index} value={logFile}>
+                  {logFile}
+                </option>
+              ))}
             </select>
           </div>
           <div className="form-group">

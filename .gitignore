@@ -3,5 +3,14 @@
 backend/.DS_Store
 backend/node_modules/
 
+backend-proxy/.DS_Store
+backend-proxy/node_modules/
+
+backend-1/.DS_Store
+backend-1/node_modules/
+
+backend-2/.DS_Store
+backend-2/node_modules/
+
 frontend/.DS_Store
 frontend/node_modules/

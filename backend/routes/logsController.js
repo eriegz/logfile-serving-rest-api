@@ -5,6 +5,22 @@ const path = require("path");
 
 const { LOG_DIR } = require("../config");
 
+router.get("/logfile-list", async (req, res) => {
+  const directoryContents = await fs.readdir(LOG_DIR);
+
+  const finalOutput = await Promise.all(
+    directoryContents.map(async (item) => {
+      const itemPath = path.join(LOG_DIR, item);
+      const itemStats = await fs.lstat(itemPath);
+      if (itemStats.isFile()) {
+        return item;
+      }
+    })
+  );
+
+  res.send(finalOutput.filter(Boolean));
+});
+
 router.get("/logs", async (req, res) => {
   const { file, n, search } = req.query;
 

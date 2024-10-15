@@ -136,8 +136,7 @@ h1 {
   background-position: right 10px top 60%;
   background-size: 12px;
   padding-right: 30px;
-  /* Hack for now until I can figure out why select is slightly narrower than the other inputs */
-  width: 220px;
+  width: 100%;
 }
 
 .form-group select:focus {
