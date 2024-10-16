@@ -15,8 +15,14 @@ router.get("/logfiles-list", async (req, res) => {
     ]);
 
     const combinedResults = [
-      ...backend1Response.data,
-      ...backend2Response.data,
+      {
+        machine: 1,
+        files: backend1Response.data,
+      },
+      {
+        machine: 2,
+        files: backend2Response.data,
+      }
     ];
 
     res.json(combinedResults);
@@ -27,7 +33,7 @@ router.get("/logfiles-list", async (req, res) => {
 });
 
 router.get("/logs", async (req, res) => {
-  const { file, n, search } = req.query;
+  const { file, machine, n, search } = req.query;
 
   const queryParams = {};
   if (file) queryParams.file = file;
@@ -37,27 +43,34 @@ router.get("/logs", async (req, res) => {
   const queryParamsStr = new URLSearchParams(queryParams).toString();
   const queryParamsIfExists = queryParamsStr ? `?${queryParamsStr}` : '';
 
-  if (file) {
-    let response;
-    const fileLookupResp = await axios.get(`${LOG_FILE_HOST_1}/api/logfile-list`);
-    if (fileLookupResp.data.includes(file)) {
-      response = await axios.get(`${LOG_FILE_HOST_1}/api/logs${queryParamsIfExists}`);
+  try {
+    if (file) {
+      if (machine === undefined) {
+        return res.status(400).send({ error: "If specifying 'file' query parameter, a 'machine' query param must also be passed" });
+      }
+      let response;
+      if (machine == 1) {
+        response = await axios.get(`${LOG_FILE_HOST_1}/api/logs${queryParamsIfExists}`);
+      } else { // machine 2
+        response = await axios.get(`${LOG_FILE_HOST_2}/api/logs${queryParamsIfExists}`);
+      }
+      res.json(response.data);
     } else {
-      response = await axios.get(`${LOG_FILE_HOST_2}/api/logs${queryParamsIfExists}`);
+      const [backend1Response, backend2Response] = await Promise.all([
+        axios.get(`${LOG_FILE_HOST_1}/api/logs${queryParamsIfExists}`),
+        axios.get(`${LOG_FILE_HOST_2}/api/logs${queryParamsIfExists}`),
+      ]);
+
+      const combinedResults = [
+        ...backend1Response.data,
+        ...backend2Response.data,
+      ];
+
+      res.json(combinedResults);
     }
-    res.json(response.data);
-  } else {
-    const [backend1Response, backend2Response] = await Promise.all([
-      axios.get(`${LOG_FILE_HOST_1}/api/logs${queryParamsIfExists}`),
-      axios.get(`${LOG_FILE_HOST_2}/api/logs${queryParamsIfExists}`),
-    ]);
-
-    const combinedResults = [
-      ...backend1Response.data,
-      ...backend2Response.data,
-    ];
-
-    res.json(combinedResults);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ error: "Error getting log file output from downstream hosts" });
   }
 });
 

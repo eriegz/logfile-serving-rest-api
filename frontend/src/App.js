@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import './App.css';
 
 function App() {
-  const [file, setFile] = useState('');
+  const [fileSelection, setFileSelection] = useState('');
   const [n, setN] = useState('');
   const [search, setSearch] = useState('');
   const [logFilesList, setLogFilesList] = useState([]);
@@ -14,7 +14,18 @@ function App() {
       try {
         fetch(`http://${process.env.REACT_APP_PROXY_HOST}/api/logfiles-list`)
           .then(response => response.json())
-          .then(data => setLogFilesList(data))
+          .then(data => {
+            const logFilesInfoArray = [];
+            data.forEach(logFileInfoObj => {
+              logFileInfoObj.files.forEach(file => {
+                logFilesInfoArray.push({
+                  machine: logFileInfoObj.machine,
+                  file,
+                });
+              });
+            });
+            setLogFilesList(logFilesInfoArray);
+          })
           .catch(error => console.error('Error:', error));
       } catch (error) {
         console.error('Error fetching log files:', error);
@@ -28,9 +39,12 @@ function App() {
     e.preventDefault();
 
     const queryParams = {};
-    if (file) queryParams.file = file;
     if (n) queryParams.n = n;
     if (search) queryParams.search = search;
+    if (fileSelection) {
+      queryParams.file = logFilesList[fileSelection].file;
+      queryParams.machine = logFilesList[fileSelection].machine;
+    }
 
     const queryParamsStr = new URLSearchParams(queryParams).toString();
     const queryParamsIfExists = queryParamsStr ? `?${queryParamsStr}` : '';
@@ -52,13 +66,13 @@ function App() {
           <div className="form-group">
             <label>File:</label>
             <select
-              value={file}
-              onChange={(e) => setFile(e.target.value)}
+              value={fileSelection}
+              onChange={(e) => setFileSelection(e.target.value)}
             >
               <option value="">Select a file</option> {/* Selecting this will return all files */}
-              {logFilesList.map((logFile, index) => (
-                <option key={index} value={logFile}>
-                  {logFile}
+              {logFilesList.map((logFileInfo, index) => (
+                <option key={index} value={index}>
+                  {`Machine ${logFileInfo.machine} — ${logFileInfo.file}`}
                 </option>
               ))}
             </select>
